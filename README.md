@@ -10,7 +10,7 @@ bluetooth low energy example (mvvm) + Service
 
 - *This code is Bluetooth LE MVVM code using Service.*  
 If you want to see the Ble implemented in Repository without using the service,  
-See [**AndroidBluetoothLE_MVVM**](https://github.com/DDANGEUN/AndroidBluetoothLE_MVVM)*  
+See [**AndroidBluetoothLE_MVVM**](https://github.com/DDANGEUN/AndroidBluetoothLE_MVVM)  
 　  
 - If you want to see your ble device like this code preview, ***modify UUID*** in **Constants.kt**  
 ```Kotlin
