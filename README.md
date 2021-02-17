@@ -1,12 +1,14 @@
-# AndroidBluetoothLE_Service_MVVM
+# AndroidBluetoothLE_MVVM_Service
 
-bluetooth low energy example (mvvm)
+bluetooth low energy example (mvvm) + Service
 
 ---
 
-# Notice
+# Info
 
-### *Updating : Use Bound Service.*
+*This code is Bluetooth LE MVVM code using Service.  
+If you want to see the Ble implemented in Repository without using the service,  
+See [**AndroidBluetoothLE_MVVM**](https://github.com/DDANGEUN/AndroidBluetoothLE_MVVM)*
 
 ---
 
