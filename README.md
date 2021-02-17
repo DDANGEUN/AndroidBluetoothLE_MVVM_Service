@@ -24,7 +24,7 @@ See [**AndroidBluetoothLE_MVVM**](https://github.com/DDANGEUN/AndroidBluetoothLE
 
 ## Preview
 
-<img src = "https://github.com/DDANGEUN/AndroidBLE_MVVM/blob/master/ble.gif" width="40%">
+<img src = "https://github.com/DDANGEUN/AndroidBLE_MVVM/blob/master/ble.gif" width="30%">
 
 ---
 
