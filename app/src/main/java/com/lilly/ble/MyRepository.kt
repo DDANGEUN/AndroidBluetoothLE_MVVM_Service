@@ -4,7 +4,6 @@ import android.bluetooth.*
 import android.content.*
 import android.os.IBinder
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.lilly.ble.util.Event
 
@@ -18,7 +17,7 @@ class MyRepository {
     val isConnected = MutableLiveData<Event<Boolean>>()
 
 
-    var mService: BleService? = null
+    var mService: BleGattService? = null
     var mBound: Boolean? = null
 
 
@@ -70,7 +69,7 @@ class MyRepository {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             Log.d(TAG, "ServiceConnection: connected to service.")
             // We've bound to LocalService, cast the IBinder and get LocalService instance
-            val binder = service as BleService.LocalBinder
+            val binder = service as BleGattService.LocalBinder
             mService = binder.service
             mBound = true
             mService?.connectDevice(deviceToConnect)
@@ -104,7 +103,7 @@ class MyRepository {
     fun connectDevice(device: BluetoothDevice?) {
         deviceToConnect = device
         // Bind to LocalService
-        Intent(MyApplication.applicationContext(), BleService::class.java).also { intent ->
+        Intent(MyApplication.applicationContext(), BleGattService::class.java).also { intent ->
             MyApplication.applicationContext().bindService(
                 intent,
                 mServiceConnection,

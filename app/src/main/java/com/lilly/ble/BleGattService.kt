@@ -7,11 +7,10 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import com.lilly.ble.util.BluetoothUtils
-import com.lilly.ble.util.Event
 import java.util.*
 
 
-class BleService : Service() {
+class BleGattService : Service() {
     // Binder given to clients (notice class declaration below)
     private val mBinder: IBinder = LocalBinder()
 
@@ -29,8 +28,8 @@ class BleService : Service() {
      */
     inner class LocalBinder : Binder() {
         // Return this instance of MyService so clients can call public methods
-        val service: BleService
-            get() = this@BleService
+        val service: BleGattService
+            get() = this@BleGattService
     }
 
     /**
