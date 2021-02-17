@@ -4,7 +4,7 @@ bluetooth low energy example (mvvm) + Service
 
 ---
 
-# Info
+## Info
 
 *This code is Bluetooth LE MVVM code using Service.  
 If you want to see the Ble implemented in Repository without using the service,  
