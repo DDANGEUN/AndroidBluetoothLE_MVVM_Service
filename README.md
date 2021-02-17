@@ -16,7 +16,7 @@ See [**AndroidBluetoothLE_MVVM**](https://github.com/DDANGEUN/AndroidBluetoothLE
 ## Struct
 
 
-<img src = "https://github.com/DDANGEUN/AndroidBluetoothLE_MVVM_Service/blob/main/struct.png">
+<img src = "https://github.com/DDANGEUN/AndroidBluetoothLE_MVVM_Service/blob/main/structimg.png">
 
 
 ---
