@@ -10,8 +10,10 @@ bluetooth low energy example (mvvm) + Service
 If you want to see the Ble implemented in Repository without using the service,  
 See [**AndroidBluetoothLE_MVVM**](https://github.com/DDANGEUN/AndroidBluetoothLE_MVVM)*
 
+---
 
-- Struct
+
+## Struct
 
 
 <img src = "https://github.com/DDANGEUN/AndroidBluetoothLE_MVVM_Service/blob/main/struct.png">
