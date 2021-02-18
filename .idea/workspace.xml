@@ -1,12 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AndroidLogFilters">
+    <option name="TOOL_WINDOW_CUSTOM_FILTER" value="hereigo" />
+    <option name="TOOL_WINDOW_CONFIGURED_FILTER" value="Show only selected application" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="5afd0ba9-bbd6-461b-8a22-f5cfe614049b" name="Default Changelist" comment="" />
+    <list default="true" id="5afd0ba9-bbd6-461b-8a22-f5cfe614049b" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/modules/BLE_MVVM_Service.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules/app/BLE_MVVM_Service.app.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/build_file_checksums.ser" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/build_file_checksums.ser" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules/BLE_MVVM.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules/app/BLE_MVVM.app.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/lilly/ble/BleGattService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/lilly/ble/BleGattService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/lilly/ble/MyRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/lilly/ble/MyRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/lilly/ble/ui/main/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/lilly/ble/ui/main/MainActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/lilly/ble/viewmodel/BleViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/lilly/ble/viewmodel/BleViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[38f2cbe4200c7ece]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -24,6 +43,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
   <component name="RunManager">
@@ -35,7 +55,7 @@
       </method>
     </configuration>
     <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
-      <module name="BLE_MVVM.app" />
+      <module name="BLE_MVVM_Service.app" />
       <option name="DEPLOY" value="true" />
       <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
       <option name="DEPLOY_AS_INSTANT" value="false" />
@@ -104,5 +124,15 @@
       <updated>1613525330911</updated>
     </task>
     <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="182" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1613525490113">
+      <screen x="0" y="0" width="2048" height="824" />
+    </state>
+    <state x="182" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/2560.0.1280.687/0.0.2048.824@0.0.2048.824" timestamp="1613525490113" />
+    <state x="1317" y="170" key="FileChooserDialogImpl" timestamp="1613611214928">
+      <screen x="0" y="0" width="2048" height="824" />
+    </state>
+    <state x="1317" y="170" key="FileChooserDialogImpl/2560.0.1280.687/0.0.2048.824@0.0.2048.824" timestamp="1613611214928" />
   </component>
 </project>

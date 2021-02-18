@@ -42,6 +42,7 @@ class MyRepository {
 
                 }
                 ACTION_GATT_DISCONNECTED->{
+                    MyApplication.applicationContext().unbindService(mServiceConnection)
                     isConnected.postValue(Event(false))
                     intent.getStringExtra(MSG_DATA)?.let{
                         statusTxt.postValue(Event(it))
@@ -67,7 +68,7 @@ class MyRepository {
     private val mServiceConnection = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            Log.d(TAG, "ServiceConnection: connected to service.")
+            Log.d("hereigo", "ServiceConnection: connected to service.")
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             val binder = service as BleGattService.LocalBinder
             mService = binder.service
@@ -75,15 +76,28 @@ class MyRepository {
             mService?.connectDevice(deviceToConnect)
         }
 
+        override fun onBindingDied(name: ComponentName?) {
+            super.onBindingDied(name)
+            Log.d("hereigo", "ServiceConnection: binding died service.")
+        }
+
         override fun onServiceDisconnected(arg0: ComponentName) {
-            Log.d(TAG, "ServiceConnection: disconnected from service.")
+            Log.d("hereigo", "ServiceConnection: disconnected from service.")
             mBound = false
+        }
+
+        override fun onNullBinding(name: ComponentName?) {
+            super.onNullBinding(name)
+            Log.d("hereigo", "ServiceConnection: nullbinding")
         }
     }
 
     fun registerGattReceiver(){
         MyApplication.applicationContext().registerReceiver(mGattUpdateReceiver,
             makeGattUpdateIntentFilter())
+    }
+    fun unregisterReceiver(){
+        MyApplication.applicationContext().unregisterReceiver(mGattUpdateReceiver)
     }
     private fun makeGattUpdateIntentFilter(): IntentFilter {
         val intentFilter = IntentFilter()
@@ -118,7 +132,7 @@ class MyRepository {
      * Disconnect Gatt Server
      */
     fun disconnectGattServer() {
-        MyApplication.applicationContext().unbindService(mServiceConnection)
+        mService?.disconnectGattServer("Disconnected")
         deviceToConnect = null
     }
 

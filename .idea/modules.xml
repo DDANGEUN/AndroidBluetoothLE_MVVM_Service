@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/BLE_MVVM.iml" filepath="$PROJECT_DIR$/.idea/modules/BLE_MVVM.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/BLE_MVVM.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/BLE_MVVM.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/BLE_MVVM_Service.iml" filepath="$PROJECT_DIR$/.idea/modules/BLE_MVVM_Service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/BLE_MVVM_Service.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/BLE_MVVM_Service.app.iml" />
     </modules>
   </component>
 </project>

@@ -154,6 +154,9 @@ class BleViewModel(private val myRepository: MyRepository) : ViewModel() {
     fun registBroadCastReceiver(){
         myRepository.registerGattReceiver()
     }
+    fun unregisterReceiver(){
+        myRepository.unregisterReceiver()
+    }
 
 
     fun onClickWrite(){

@@ -3,6 +3,7 @@ package com.lilly.ble
 import android.app.Service
 import android.bluetooth.*
 import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
@@ -42,8 +43,13 @@ class BleGattService : Service() {
 
 
     override fun onUnbind(intent: Intent?): Boolean {
-        disconnectGattServer("Disconnected")
+        Log.d(TAG,"onUnbind called")
         return super.onUnbind(intent)
+    }
+
+    override fun onDestroy() {
+        Log.d(TAG,"onDestroy called")
+        super.onDestroy()
     }
 
     private fun broadcastUpdate(action: String) {
@@ -182,7 +188,7 @@ class BleGattService : Service() {
      * Disconnect Gatt Server
      */
     fun disconnectGattServer(msg: String) {
-        Log.d(TAG, "Closing Gatt connection")
+        Log.d("hereigo", "Closing Gatt connection")
         // disconnect and close the gatt
         if (bleGatt != null) {
             bleGatt!!.disconnect()
