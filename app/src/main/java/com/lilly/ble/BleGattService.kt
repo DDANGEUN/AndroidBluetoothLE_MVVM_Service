@@ -88,7 +88,7 @@ class BleGattService : Service() {
                 Log.d(TAG, "Connected to the GATT server")
                 gatt.discoverServices()
             } else if ( newState == BluetoothProfile.STATE_DISCONNECTED ) {
-                disconnectGattServer("Disconnected")
+                broadcastUpdate(ACTION_GATT_DISCONNECTED,"Disconnected")
             }
         }
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
