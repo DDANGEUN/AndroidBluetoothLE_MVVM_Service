@@ -4,17 +4,25 @@ import android.bluetooth.*
 import android.content.*
 import android.os.IBinder
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.lilly.ble.util.Event
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 
 class MyRepository {
 
     private val TAG = "MyRepository"
 
-    val statusTxt = MutableLiveData<Event<String>>()
-    val txtRead = MutableLiveData<Event<String>>()
-    val isConnected = MutableLiveData<Event<Boolean>>()
+    var statusTxt: String = ""
+    var txtRead: String = ""
+    var isConnected = MutableLiveData<Event<Boolean>>()
+
+    var isStatusChange: Boolean = false
+    var isTxtRead: Boolean = false
+
 
 
     var mService: BleGattService? = null
@@ -22,6 +30,26 @@ class MyRepository {
 
 
     var deviceToConnect: BluetoothDevice? = null
+
+
+    fun fetchReadText() = flow{
+        while(true) {
+            if(isTxtRead) {
+                emit(txtRead)
+                isTxtRead = false
+            }
+        }
+    }.flowOn(Dispatchers.Default)
+    fun fetchStatusText() = flow{
+        while(true) {
+            if(isStatusChange) {
+                emit(statusTxt)
+                isStatusChange = false
+            }
+        }
+    }.flowOn(Dispatchers.Default)
+
+
 
 
 
@@ -37,7 +65,8 @@ class MyRepository {
                 ACTION_GATT_CONNECTED->{
                     isConnected.postValue(Event(true))
                     intent.getStringExtra(MSG_DATA)?.let{
-                        statusTxt.postValue(Event(it))
+                        statusTxt = it
+                        isStatusChange = true
                     }
 
                 }
@@ -45,19 +74,22 @@ class MyRepository {
                     MyApplication.applicationContext().unbindService(mServiceConnection)
                     isConnected.postValue(Event(false))
                     intent.getStringExtra(MSG_DATA)?.let{
-                        statusTxt.postValue(Event(it))
+                        statusTxt = it
+                        isStatusChange = true
                     }
                 }
                 ACTION_STATUS_MSG->{
                     intent.getStringExtra(MSG_DATA)?.let{
-                        statusTxt.postValue(Event(it))
+                        statusTxt = it
+                        isStatusChange = true
                     }
                 }
                 ACTION_READ_DATA->{
                     //displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
 
                     intent.getStringExtra(EXTRA_DATA)?.let{
-                        txtRead.postValue(Event(it))
+                        txtRead = it
+                        isTxtRead = true
                     }
                 }
             }

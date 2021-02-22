@@ -22,12 +22,15 @@ class BleViewModel(private val myRepository: MyRepository) : ViewModel() {
 
     val TAG = "MainViewModel"
 
-    val statusTxt: LiveData<Event<String>>
-        get() = myRepository.statusTxt
-    val readTxt: LiveData<Event<String>>
-        get() = myRepository.txtRead
+    val statusTxt: LiveData<String>
+        get() = myRepository.fetchStatusText().asLiveData(viewModelScope.coroutineContext)
+
+    val readTxt: LiveData<String>//LiveData<Event<String>>
+        get() = myRepository.fetchReadText().asLiveData(viewModelScope.coroutineContext)
+
+
     val _isConnect : LiveData<Event<Boolean>>
-        get() = myRepository.isConnected
+       get() = myRepository.isConnected
 
     // ble manager
     val bleManager: BluetoothManager =
@@ -67,7 +70,8 @@ class BleViewModel(private val myRepository: MyRepository) : ViewModel() {
         // check ble adapter and ble enabled
         if (bleAdapter == null || !bleAdapter?.isEnabled!!) {
             _requestEnableBLE.postValue(Event(true))
-            myRepository.statusTxt.postValue(Event("Scanning Failed: ble not enabled"))
+            myRepository.statusTxt="Scanning Failed: ble not enabled"
+            myRepository.isStatusChange = true
             return
         }
         //scan filter
@@ -85,7 +89,8 @@ class BleViewModel(private val myRepository: MyRepository) : ViewModel() {
         bleAdapter?.bluetoothLeScanner?.startScan(filters, settings, BLEScanCallback)
         //bleAdapter?.bluetoothLeScanner?.startScan(BLEScanCallback)
 
-        myRepository.statusTxt.postValue(Event("Scanning...."))
+        myRepository.statusTxt = "Scanning...."
+        myRepository.isStatusChange = true
         isScanning.set(true)
 
         Timer("SettingUp", false).schedule(3000) { stopScan() }
@@ -95,7 +100,8 @@ class BleViewModel(private val myRepository: MyRepository) : ViewModel() {
     fun stopScan(){
         bleAdapter?.bluetoothLeScanner?.stopScan(BLEScanCallback)
         isScanning.set(false)
-        myRepository.statusTxt.postValue(Event("Scan finished. Click on the name to connect to the device."))
+        myRepository.statusTxt = "Scan finished. Click on the name to connect to the device."
+        myRepository.isStatusChange = true
 
         scanResults = ArrayList() //list 초기화
         Log.d(TAG, "BLE Stop!")
@@ -120,7 +126,8 @@ class BleViewModel(private val myRepository: MyRepository) : ViewModel() {
 
         override fun onScanFailed(_error: Int) {
             Log.e(TAG, "BLE scan failed with code $_error")
-            myRepository.statusTxt.postValue(Event("BLE scan failed with code $_error"))
+            myRepository.statusTxt = "BLE scan failed with code $_error"
+            myRepository.isStatusChange = true
         }
 
         /**
@@ -138,7 +145,8 @@ class BleViewModel(private val myRepository: MyRepository) : ViewModel() {
             }
             scanResults?.add(result.device)
             // log
-            myRepository.statusTxt.postValue(Event("add scanned device: $deviceAddress"))
+            myRepository.statusTxt = "add scanned device: $deviceAddress"
+            myRepository.isStatusChange = true
             _listUpdate.postValue(Event(scanResults))
         }
     }

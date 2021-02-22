@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
@@ -90,21 +91,18 @@ class MainActivity : AppCompatActivity() {
             }
         })
         viewModel.statusTxt.observe(this,{
-            it.getContentIfNotHandled()?.let{ status ->
-                binding.statusText.text = status
-            }
+                binding.statusText.text = it
         })
 
         viewModel.readTxt.observe(this,{
-            it.getContentIfNotHandled()?.let{ read ->
-                binding.txtRead.append(read)
+                binding.txtRead.append(it)
                 if ((binding.txtRead.measuredHeight - binding.scroller.scrollY) <=
                     (binding.scroller.height + binding.txtRead.lineHeight)) {
                     binding.scroller.post {
                         binding.scroller.smoothScrollTo(0, binding.txtRead.bottom)
                     }
                 }
-            }
+
         })
     }
     override fun onResume() {
