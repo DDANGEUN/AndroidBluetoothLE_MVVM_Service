@@ -8,6 +8,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.lilly.ble.util.Event
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 
@@ -17,11 +19,10 @@ class MyRepository {
     private val TAG = "MyRepository"
 
     var statusTxt: String = ""
-    var txtRead: String = ""
+
     var isConnected = MutableLiveData<Event<Boolean>>()
 
     var isStatusChange: Boolean = false
-    var isTxtRead: Boolean = false
 
 
 
@@ -32,22 +33,25 @@ class MyRepository {
     var deviceToConnect: BluetoothDevice? = null
 
 
-    fun fetchReadText() = flow{
+    var isTxtRead: Boolean = false
+    var txtRead: String = ""
+
+    val fetchReadText = flow{
         while(true) {
             if(isTxtRead) {
                 emit(txtRead)
                 isTxtRead = false
             }
         }
-    }.flowOn(Dispatchers.Default)
-    fun fetchStatusText() = flow{
+    }.flowOn(IO)
+    val fetchStatusText = flow{
         while(true) {
             if(isStatusChange) {
                 emit(statusTxt)
                 isStatusChange = false
             }
         }
-    }.flowOn(Dispatchers.Default)
+    }.flowOn(IO)
 
 
 
@@ -92,6 +96,7 @@ class MyRepository {
                         isTxtRead = true
                     }
                 }
+
             }
 
         }
@@ -135,8 +140,8 @@ class MyRepository {
         val intentFilter = IntentFilter()
         intentFilter.addAction(ACTION_GATT_CONNECTED)
         intentFilter.addAction(ACTION_GATT_DISCONNECTED)
-        intentFilter.addAction(ACTION_READ_DATA)
         intentFilter.addAction(ACTION_STATUS_MSG)
+        intentFilter.addAction(ACTION_READ_DATA)
         return intentFilter
     }
 

@@ -8,6 +8,10 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import com.lilly.ble.util.BluetoothUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import java.util.*
 
 
@@ -20,6 +24,9 @@ class BleGattService : Service() {
 
     // ble Gatt
     private var bleGatt: BluetoothGatt? = null
+
+
+
 
 
 
@@ -96,7 +103,7 @@ class BleGattService : Service() {
 
             // check if the discovery failed
             if (status != BluetoothGatt.GATT_SUCCESS) {
-                broadcastUpdate(ACTION_GATT_DISCONNECTED,"Device service discovery failed, status: $status")
+                disconnectGattServer("Device service discovery failed, status: $status")
                 return
             }
             // log for successful discovery
@@ -106,7 +113,7 @@ class BleGattService : Service() {
             val respCharacteristic = gatt?.let { BluetoothUtils.findResponseCharacteristic(it) }
             // disconnect if the characteristic is not found
             if( respCharacteristic == null ) {
-                disconnectGattServer("Unable to find cmd characteristic")
+                disconnectGattServer("Unable to find characteristic")
                 return
             }
 

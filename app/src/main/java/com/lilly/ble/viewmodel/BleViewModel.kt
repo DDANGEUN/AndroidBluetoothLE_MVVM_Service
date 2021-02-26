@@ -14,6 +14,7 @@ import androidx.databinding.ObservableBoolean
 import androidx.lifecycle.*
 import com.lilly.ble.*
 import com.lilly.ble.util.Event
+import kotlinx.coroutines.Dispatchers
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -22,11 +23,9 @@ class BleViewModel(private val myRepository: MyRepository) : ViewModel() {
 
     val TAG = "MainViewModel"
 
-    val statusTxt: LiveData<String>
-        get() = myRepository.fetchStatusText().asLiveData(viewModelScope.coroutineContext)
+    val statusTxt: LiveData<String> = myRepository.fetchStatusText.asLiveData(viewModelScope.coroutineContext)
 
-    val readTxt: LiveData<String>//LiveData<Event<String>>
-        get() = myRepository.fetchReadText().asLiveData(viewModelScope.coroutineContext)
+    val readTxt: LiveData<String> = myRepository.fetchReadText.asLiveData(viewModelScope.coroutineContext)
 
 
     val _isConnect : LiveData<Event<Boolean>>
