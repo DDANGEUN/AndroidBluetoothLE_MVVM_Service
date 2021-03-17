@@ -25,44 +25,66 @@
             android:textColor="@color/lilly_color4" />
 
         <LinearLayout
+            android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btn_scan"
-                android:layout_width="120dp"
-                android:layout_height="wrap_content"
-                android:layout_margin="6dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:layout_margin="1dp"
                 android:background="@drawable/button_back"
                 android:enabled="@{viewModel.isScanning?false:true}"
                 android:onClick="@{()->viewModel.onClickScan()}"
-                android:text="@{viewModel.isScanning?`scanning...`:`start scan`}"
+                android:text="@{viewModel.isScanning?`scanning..`:`star\nscan`}"
                 android:textColor="@color/white"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textSize="13sp"/>
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btn_disconnect"
-                android:layout_width="120dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_margin="6dp"
-                android:background="@{viewModel.isConnect?@drawable/button_back:@drawable/round_background_color3}"
+                android:layout_margin="1dp"
+                android:background="@drawable/button_back"
                 android:enabled="@{viewModel.isConnect?true:false}"
                 android:onClick="@{()->viewModel.onClickDisconnect()}"
                 android:text="disconnect"
                 android:textColor="@color/white"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textSize="13sp"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_read"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_margin="1dp"
+                android:onClick="@{()->viewModel.onClickRead()}"
+                android:enabled="@{viewModel.isConnect?true:false}"
+                android:background="@drawable/button_back2"
+                android:text="Read\nToggle"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="13sp"/>
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btn_send"
-                android:layout_width="120dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_margin="6dp"
+                android:layout_margin="1dp"
                 android:background="@drawable/button_back2"
                 android:onClick="@{()->viewModel.onClickWrite()}"
-                android:text="Write 0x12"
+                android:text="Write\n0x12"
+                android:enabled="@{viewModel.isConnect?true:false}"
                 android:textColor="@color/white"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textSize="13sp"/>
         </LinearLayout>
 
         <ScrollView

@@ -25,7 +25,7 @@ class BleViewModel(private val myRepository: MyRepository) : ViewModel() {
 
     val statusTxt: LiveData<String> = myRepository.fetchStatusText.asLiveData(viewModelScope.coroutineContext)
 
-    val readTxt: LiveData<String> = myRepository.fetchReadText.asLiveData(viewModelScope.coroutineContext)
+    val readTxt: LiveData<String>? = myRepository.readDataFlow
 
 
     val _isConnect : LiveData<Event<Boolean>>
@@ -165,6 +165,9 @@ class BleViewModel(private val myRepository: MyRepository) : ViewModel() {
         myRepository.unregisterReceiver()
     }
 
+    fun onClickRead(){
+        myRepository.readToggle()
+    }
 
     fun onClickWrite(){
 

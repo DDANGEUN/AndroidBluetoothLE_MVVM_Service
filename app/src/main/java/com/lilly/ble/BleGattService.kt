@@ -3,7 +3,6 @@ package com.lilly.ble
 import android.app.Service
 import android.bluetooth.*
 import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
@@ -21,13 +20,22 @@ class BleGattService : Service() {
 
     private val TAG = "BleService"
 
+    private var fetchRead = false
+    var isRead = false
+    private var readTxt = "start"
 
     // ble Gatt
     private var bleGatt: BluetoothGatt? = null
 
+    fun fetchReadData(): Flow<String> = flow {
+        while (isRead) {
+            if (fetchRead) {
+                emit(readTxt)
+                fetchRead = false
+            }
+        }
 
-
-
+    }.flowOn(Dispatchers.IO)
 
 
     /**
@@ -50,29 +58,21 @@ class BleGattService : Service() {
 
 
     override fun onUnbind(intent: Intent?): Boolean {
-        Log.d(TAG,"onUnbind called")
+        Log.d(TAG, "onUnbind called")
         return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
-        Log.d(TAG,"onDestroy called")
+        Log.d(TAG, "onDestroy called")
         super.onDestroy()
     }
 
-    private fun broadcastUpdate(action: String) {
-        val intent = Intent(action)
-        sendBroadcast(intent)
-    }
     private fun broadcastUpdate(action: String, msg: String) {
         val intent = Intent(action)
-        intent.putExtra(MSG_DATA,msg)
+        intent.putExtra(MSG_DATA, msg)
         sendBroadcast(intent)
     }
-    private fun broadcastDataUpdate(action: String, data: String) {
-        val intent = Intent(action)
-        intent.putExtra(EXTRA_DATA,data)
-        sendBroadcast(intent)
-    }
+
 
     /**
      * BLE gattClientCallback
@@ -82,22 +82,23 @@ class BleGattService : Service() {
             super.onConnectionStateChange(gatt, status, newState)
 
 
-            if( status == BluetoothGatt.GATT_FAILURE ) {
+            if (status == BluetoothGatt.GATT_FAILURE) {
                 disconnectGattServer("Bluetooth Gatt Fialure")
                 return
-            } else if( status != BluetoothGatt.GATT_SUCCESS ) {
+            } else if (status != BluetoothGatt.GATT_SUCCESS) {
                 disconnectGattServer("Disconnected")
                 return
             }
-            if( newState == BluetoothProfile.STATE_CONNECTED ) {
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
                 // update the connection status message
-                broadcastUpdate(ACTION_GATT_CONNECTED,"Connected")
+                broadcastUpdate(ACTION_GATT_CONNECTED, "Connected")
                 Log.d(TAG, "Connected to the GATT server")
                 gatt.discoverServices()
-            } else if ( newState == BluetoothProfile.STATE_DISCONNECTED ) {
-                broadcastUpdate(ACTION_GATT_DISCONNECTED,"Disconnected")
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                broadcastUpdate(ACTION_GATT_DISCONNECTED, "Disconnected")
             }
         }
+
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             super.onServicesDiscovered(gatt, status)
 
@@ -107,24 +108,11 @@ class BleGattService : Service() {
                 return
             }
             // log for successful discovery
+            bleGatt = gatt
             Log.d(TAG, "Services discovery is successful")
 
-            // find command characteristics from the GATT server
-            val respCharacteristic = gatt?.let { BluetoothUtils.findResponseCharacteristic(it) }
-            // disconnect if the characteristic is not found
-            if( respCharacteristic == null ) {
-                disconnectGattServer("Unable to find characteristic")
-                return
-            }
 
-            // READ
-            gatt.setCharacteristicNotification(respCharacteristic, true)
-            // UUID for notification
-            val descriptor: BluetoothGattDescriptor = respCharacteristic.getDescriptor(
-                UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG)
-            )
-            descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-            gatt.writeDescriptor(descriptor)
+
         }
 
         override fun onCharacteristicChanged(
@@ -173,7 +161,8 @@ class BleGattService : Service() {
         private fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
 
             val msg = characteristic.getStringValue(0)
-            broadcastDataUpdate(ACTION_READ_DATA,msg)
+            readTxt = msg
+            fetchRead = true
             Log.d(TAG, "read: $msg")
         }
 
@@ -185,10 +174,9 @@ class BleGattService : Service() {
      */
     fun connectDevice(device: BluetoothDevice?) {
         // update the status
-        broadcastUpdate(ACTION_STATUS_MSG,"Connecting to ${device?.address}")
+        broadcastUpdate(ACTION_STATUS_MSG, "Connecting to ${device?.address}")
         bleGatt = device?.connectGatt(MyApplication.applicationContext(), false, gattClientCallback)
     }
-
 
 
     /**
@@ -201,10 +189,10 @@ class BleGattService : Service() {
             bleGatt!!.disconnect()
             bleGatt!!.close()
         }
-        broadcastUpdate(ACTION_GATT_DISCONNECTED,msg)
+        broadcastUpdate(ACTION_GATT_DISCONNECTED, msg)
     }
 
-    fun writeData(cmdByteArray: ByteArray){
+    fun writeData(cmdByteArray: ByteArray) {
         val cmdCharacteristic = BluetoothUtils.findCommandCharacteristic(bleGatt!!)
         // disconnect if the characteristic is not found
         if (cmdCharacteristic == null) {
@@ -215,9 +203,27 @@ class BleGattService : Service() {
         cmdCharacteristic.value = cmdByteArray
         val success: Boolean = bleGatt!!.writeCharacteristic(cmdCharacteristic)
         // check the result
-        if( !success ) {
+        if (!success) {
             Log.e(TAG, "Failed to write command")
         }
+    }
+    fun startRead(){
+        isRead = true
+        // find command characteristics from the GATT server
+        val respCharacteristic = bleGatt?.let { BluetoothUtils.findResponseCharacteristic(it) }
+        // disconnect if the characteristic is not found
+        if (respCharacteristic == null) {
+            disconnectGattServer("Unable to find characteristic")
+            return
+        }
+        // READ
+        bleGatt?.setCharacteristicNotification(respCharacteristic, true)
+        // UUID for notification
+        val descriptor: BluetoothGattDescriptor = respCharacteristic.getDescriptor(
+            UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG)
+        )
+        descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+        bleGatt?.writeDescriptor(descriptor)
     }
 
 }

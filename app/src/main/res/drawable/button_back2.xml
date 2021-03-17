@@ -15,6 +15,6 @@
 
     <item
         android:state_enabled="false"
-        android:drawable="@drawable/round_background_color2"/>
+        android:drawable="@drawable/round_background_disable"/>
 
 </selector>

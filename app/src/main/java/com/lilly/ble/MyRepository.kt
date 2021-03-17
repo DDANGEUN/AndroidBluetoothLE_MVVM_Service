@@ -4,14 +4,14 @@ import android.bluetooth.*
 import android.content.*
 import android.os.IBinder
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.lilly.ble.util.Event
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 
 
 class MyRepository {
@@ -36,14 +36,7 @@ class MyRepository {
     var isTxtRead: Boolean = false
     var txtRead: String = ""
 
-    val fetchReadText = flow{
-        while(true) {
-            if(isTxtRead) {
-                emit(txtRead)
-                isTxtRead = false
-            }
-        }
-    }.flowOn(IO)
+    val readDataFlow = MutableLiveData<String>()
     val fetchStatusText = flow{
         while(true) {
             if(isStatusChange) {
@@ -86,14 +79,6 @@ class MyRepository {
                     intent.getStringExtra(MSG_DATA)?.let{
                         statusTxt = it
                         isStatusChange = true
-                    }
-                }
-                ACTION_READ_DATA->{
-                    //displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
-
-                    intent.getStringExtra(EXTRA_DATA)?.let{
-                        txtRead = it
-                        isTxtRead = true
                     }
                 }
 
@@ -141,7 +126,6 @@ class MyRepository {
         intentFilter.addAction(ACTION_GATT_CONNECTED)
         intentFilter.addAction(ACTION_GATT_DISCONNECTED)
         intentFilter.addAction(ACTION_STATUS_MSG)
-        intentFilter.addAction(ACTION_READ_DATA)
         return intentFilter
     }
 
@@ -175,6 +159,21 @@ class MyRepository {
 
     fun writeData(cmdByteArray: ByteArray){
         mService?.writeData(cmdByteArray)
+    }
+    fun readToggle(){
+        if(mService?.isRead == true){
+            mService?.isRead = false
+        }else{
+            startReadData()
+        }
+    }
+    fun startReadData(){
+        mService?.startRead()
+        CoroutineScope(IO).launch{
+            mService?.fetchReadData()?.collect{
+                readDataFlow.postValue(it)
+            }
+        }
     }
 
 }

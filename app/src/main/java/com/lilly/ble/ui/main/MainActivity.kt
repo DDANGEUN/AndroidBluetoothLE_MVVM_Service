@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
                 binding.statusText.text = it
         })
 
-        viewModel.readTxt.observe(this,{
+        viewModel.readTxt?.observe(this,{
                 binding.txtRead.append(it)
                 if ((binding.txtRead.measuredHeight - binding.scroller.scrollY) <=
                     (binding.scroller.height + binding.txtRead.lineHeight)) {
