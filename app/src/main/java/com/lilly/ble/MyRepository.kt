@@ -2,16 +2,12 @@ package com.lilly.ble
 
 import android.bluetooth.*
 import android.content.*
-import android.os.IBinder
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.lilly.ble.util.Event
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
 
 
 class MyRepository {
@@ -22,19 +18,12 @@ class MyRepository {
 
     var isConnected = MutableLiveData<Event<Boolean>>()
 
+    var isRead = false
     var isStatusChange: Boolean = false
 
 
-
-    var mService: BleGattService? = null
-    var mBound: Boolean? = null
-
-
     var deviceToConnect: BluetoothDevice? = null
-
-
-    var isTxtRead: Boolean = false
-    var txtRead: String = ""
+    var cmdByteArray: ByteArray? = null
 
     val readDataFlow = MutableLiveData<String>()
     val fetchStatusText = flow{
@@ -59,26 +48,33 @@ class MyRepository {
         override fun onReceive(context: Context, intent: Intent) {
             Log.d(TAG,"action ${intent.action}")
             when(intent.action){
-                ACTION_GATT_CONNECTED->{
+                Actions.GATT_CONNECTED-> {
                     isConnected.postValue(Event(true))
-                    intent.getStringExtra(MSG_DATA)?.let{
+                    intent.getStringExtra(Actions.MSG_DATA)?.let {
                         statusTxt = it
                         isStatusChange = true
                     }
-
                 }
-                ACTION_GATT_DISCONNECTED->{
-                    MyApplication.applicationContext().unbindService(mServiceConnection)
+                Actions.GATT_DISCONNECTED->{
+                    stopForegroundService()
                     isConnected.postValue(Event(false))
-                    intent.getStringExtra(MSG_DATA)?.let{
+                    intent.getStringExtra(Actions.MSG_DATA)?.let{
                         statusTxt = it
                         isStatusChange = true
                     }
                 }
-                ACTION_STATUS_MSG->{
-                    intent.getStringExtra(MSG_DATA)?.let{
+                Actions.STATUS_MSG->{
+                    intent.getStringExtra(Actions.MSG_DATA)?.let{
                         statusTxt = it
                         isStatusChange = true
+                    }
+                }
+                Actions.READ_CHARACTERISTIC->{
+                    intent.getByteArrayExtra(Actions.READ_BYTES)?.let{ bytes->
+                        val hexString: String = bytes.joinToString(separator = " ") {
+                            String.format("%02X", it)
+                        }
+                        readDataFlow.postValue(hexString)
                     }
                 }
 
@@ -87,32 +83,7 @@ class MyRepository {
         }
     }
 
-    private val mServiceConnection = object : ServiceConnection {
 
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            Log.d("hereigo", "ServiceConnection: connected to service.")
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            val binder = service as BleGattService.LocalBinder
-            mService = binder.service
-            mBound = true
-            mService?.connectDevice(deviceToConnect)
-        }
-
-        override fun onBindingDied(name: ComponentName?) {
-            super.onBindingDied(name)
-            Log.d("hereigo", "ServiceConnection: binding died service.")
-        }
-
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            Log.d("hereigo", "ServiceConnection: disconnected from service.")
-            mBound = false
-        }
-
-        override fun onNullBinding(name: ComponentName?) {
-            super.onNullBinding(name)
-            Log.d("hereigo", "ServiceConnection: nullbinding")
-        }
-    }
 
     fun registerGattReceiver(){
         MyApplication.applicationContext().registerReceiver(mGattUpdateReceiver,
@@ -123,9 +94,10 @@ class MyRepository {
     }
     private fun makeGattUpdateIntentFilter(): IntentFilter {
         val intentFilter = IntentFilter()
-        intentFilter.addAction(ACTION_GATT_CONNECTED)
-        intentFilter.addAction(ACTION_GATT_DISCONNECTED)
-        intentFilter.addAction(ACTION_STATUS_MSG)
+        intentFilter.addAction(Actions.GATT_CONNECTED)
+        intentFilter.addAction(Actions.GATT_DISCONNECTED)
+        intentFilter.addAction(Actions.STATUS_MSG)
+        intentFilter.addAction(Actions.READ_CHARACTERISTIC)
         return intentFilter
     }
 
@@ -137,13 +109,18 @@ class MyRepository {
      */
     fun connectDevice(device: BluetoothDevice?) {
         deviceToConnect = device
-        // Bind to LocalService
+        startForegroundService()
+    }
+    private fun startForegroundService(){
         Intent(MyApplication.applicationContext(), BleGattService::class.java).also { intent ->
-            MyApplication.applicationContext().bindService(
-                intent,
-                mServiceConnection,
-                Context.BIND_AUTO_CREATE
-            )
+            intent.action = Actions.START_FOREGROUND
+            MyApplication.applicationContext().startForegroundService(intent)
+        }
+    }
+    fun stopForegroundService(){
+        Intent(MyApplication.applicationContext(), BleGattService::class.java).also { intent ->
+            intent.action = Actions.STOP_FOREGROUND
+            MyApplication.applicationContext().startForegroundService(intent)
         }
     }
 
@@ -153,26 +130,43 @@ class MyRepository {
      * Disconnect Gatt Server
      */
     fun disconnectGattServer() {
-        mService?.disconnectGattServer("Disconnected")
+        Intent(MyApplication.applicationContext(), BleGattService::class.java).also { intent ->
+            //MyApplication.applicationContext().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+            intent.action = Actions.DISCONNECT_DEVICE
+            MyApplication.applicationContext().startForegroundService(intent)
+        }
         deviceToConnect = null
     }
 
-    fun writeData(cmdByteArray: ByteArray){
-        mService?.writeData(cmdByteArray)
-    }
-    fun readToggle(){
-        if(mService?.isRead == true){
-            mService?.isRead = false
-        }else{
-            startReadData()
+    fun writeData(byteArray: ByteArray){
+        cmdByteArray = byteArray
+        Intent(MyApplication.applicationContext(), BleGattService::class.java).also { intent ->
+            //MyApplication.applicationContext().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+            intent.action = Actions.WRITE_DATA
+            MyApplication.applicationContext().startForegroundService(intent)
         }
     }
-    fun startReadData(){
-        mService?.startRead()
-        CoroutineScope(IO).launch{
-            mService?.fetchReadData()?.collect{
-                readDataFlow.postValue(it)
-            }
+    fun readToggle(){
+        if(isRead){
+            isRead = false
+            stopNotification()
+        }else{
+            isRead = true
+            startNotification()
+        }
+    }
+    private fun startNotification(){
+        Intent(MyApplication.applicationContext(), BleGattService::class.java).also { intent ->
+            //MyApplication.applicationContext().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+            intent.action = Actions.START_NOTIFICATION
+            MyApplication.applicationContext().startForegroundService(intent)
+        }
+    }
+    private fun stopNotification(){
+        Intent(MyApplication.applicationContext(), BleGattService::class.java).also { intent ->
+            //MyApplication.applicationContext().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+            intent.action = Actions.STOP_NOTIFICATION
+            MyApplication.applicationContext().startForegroundService(intent)
         }
     }
 

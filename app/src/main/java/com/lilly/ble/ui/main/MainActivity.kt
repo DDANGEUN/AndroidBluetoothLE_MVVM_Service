@@ -25,6 +25,8 @@ import com.lilly.ble.adapter.BleListAdapter
 import com.lilly.ble.databinding.ActivityBleMainBinding
 import com.lilly.ble.viewmodel.BleViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -90,11 +92,14 @@ class MainActivity : AppCompatActivity() {
             }
         })
         viewModel.statusTxt.observe(this,{
-                binding.statusText.text = it
+            binding.statusText.text = it
         })
 
         viewModel.readTxt?.observe(this,{
-                binding.txtRead.append(it)
+            val now = System.currentTimeMillis()
+            val datef = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
+            val timestamp = datef.format(Date(now))
+                binding.txtRead.append("[${timestamp}]\t$it\n")
                 if ((binding.txtRead.measuredHeight - binding.scroller.scrollY) <=
                     (binding.scroller.height + binding.txtRead.lineHeight)) {
                     binding.scroller.post {

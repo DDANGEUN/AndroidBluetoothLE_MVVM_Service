@@ -1,6 +1,6 @@
 # AndroidBluetoothLE_MVVM_Service
 
-bluetooth low energy example (mvvm) + Service
+bluetooth low energy example (mvvm) + (Foreground)Service
 
 　  
 

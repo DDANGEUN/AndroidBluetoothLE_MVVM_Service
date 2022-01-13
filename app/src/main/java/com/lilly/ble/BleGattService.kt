@@ -1,16 +1,18 @@
 package com.lilly.ble
 
-import android.app.Service
+import android.app.*
 import android.bluetooth.*
+import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.PRIORITY_MIN
+import com.lilly.ble.ui.main.MainActivity
 import com.lilly.ble.util.BluetoothUtils
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import org.koin.android.ext.android.inject
 import java.util.*
 
 
@@ -20,22 +22,49 @@ class BleGattService : Service() {
 
     private val TAG = "BleService"
 
-    private var fetchRead = false
-    var isRead = false
-    private var readTxt = "start"
+
+    private val myRepository: MyRepository by inject()
 
     // ble Gatt
     private var bleGatt: BluetoothGatt? = null
 
-    fun fetchReadData(): Flow<String> = flow {
-        while (isRead) {
-            if (fetchRead) {
-                emit(readTxt)
-                fetchRead = false
-            }
-        }
 
-    }.flowOn(Dispatchers.IO)
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d(TAG, "Action Received = ${intent?.action}")
+        // intent가 시스템에 의해 재생성되었을때 null값이므로 Java에서는 null check 필수
+        when (intent?.action) {
+            Actions.START_FOREGROUND -> {
+                startForegroundService()
+            }
+            Actions.STOP_FOREGROUND -> {
+                stopForegroundService()
+            }
+            Actions.DISCONNECT_DEVICE->{
+                disconnectGattServer("Disconnected")
+            }
+            Actions.START_NOTIFICATION->{
+                startNotification()
+            }
+            Actions.STOP_NOTIFICATION->{
+                stopNotification()
+            }
+            Actions.WRITE_DATA->{
+                myRepository.cmdByteArray?.let { writeData(it) }
+            }
+
+        }
+        return START_STICKY
+    }
+
+    private fun startForegroundService() {
+        startForeground()
+    }
+
+    private fun stopForegroundService() {
+        stopForeground(true)
+        stopSelf()
+    }
+
 
 
     /**
@@ -57,6 +86,42 @@ class BleGattService : Service() {
     }
 
 
+    private fun startForeground() {
+        val channelId =
+            createNotificationChannel()
+
+        val notificationBuilder = NotificationCompat.Builder(this, channelId )
+        val notificationIntent: Intent = Intent(this, MainActivity::class.java)
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(this,0,notificationIntent,0)
+        val notification = notificationBuilder.setOngoing(true)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("Service is running in background")
+            .setContentText("Tap to open")
+            .setPriority(PRIORITY_MIN)
+            .setCategory(Notification.CATEGORY_SERVICE)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        startForeground(1, notification)
+
+        //connect
+        connectDevice(myRepository.deviceToConnect)
+
+    }
+    private fun createNotificationChannel(): String{
+        val channelId = "my_service"
+        val channelName = "My Background Service"
+        val chan = NotificationChannel(channelId,
+            channelName, NotificationManager.IMPORTANCE_HIGH)
+        chan.lightColor = Color.BLUE
+        chan.importance = NotificationManager.IMPORTANCE_NONE
+        chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        service.createNotificationChannel(chan)
+        return channelId
+    }
+
+
     override fun onUnbind(intent: Intent?): Boolean {
         Log.d(TAG, "onUnbind called")
         return super.onUnbind(intent)
@@ -69,7 +134,12 @@ class BleGattService : Service() {
 
     private fun broadcastUpdate(action: String, msg: String) {
         val intent = Intent(action)
-        intent.putExtra(MSG_DATA, msg)
+        intent.putExtra(Actions.MSG_DATA, msg)
+        sendBroadcast(intent)
+    }
+    private fun broadcastUpdate(action: String, readBytes: ByteArray) {
+        val intent = Intent(action)
+        intent.putExtra(Actions.READ_BYTES, readBytes)
         sendBroadcast(intent)
     }
 
@@ -91,11 +161,11 @@ class BleGattService : Service() {
             }
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 // update the connection status message
-                broadcastUpdate(ACTION_GATT_CONNECTED, "Connected")
+                broadcastUpdate(Actions.GATT_CONNECTED, "Connected")
                 Log.d(TAG, "Connected to the GATT server")
                 gatt.discoverServices()
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                broadcastUpdate(ACTION_GATT_DISCONNECTED, "Disconnected")
+                broadcastUpdate(Actions.GATT_DISCONNECTED, "Disconnected")
             }
         }
 
@@ -159,10 +229,8 @@ class BleGattService : Service() {
          * @param characteristic
          */
         private fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
-
-            val msg = characteristic.getStringValue(0)
-            readTxt = msg
-            fetchRead = true
+            val msg = characteristic.value
+            broadcastUpdate(Actions.READ_CHARACTERISTIC ,msg)
             Log.d(TAG, "read: $msg")
         }
 
@@ -172,9 +240,9 @@ class BleGattService : Service() {
     /**
      * Connect to the ble device
      */
-    fun connectDevice(device: BluetoothDevice?) {
+    private fun connectDevice(device: BluetoothDevice?) {
         // update the status
-        broadcastUpdate(ACTION_STATUS_MSG, "Connecting to ${device?.address}")
+        broadcastUpdate(Actions.STATUS_MSG, "Connecting to ${device?.address}")
         bleGatt = device?.connectGatt(MyApplication.applicationContext(), false, gattClientCallback)
     }
 
@@ -189,13 +257,14 @@ class BleGattService : Service() {
             bleGatt!!.disconnect()
             bleGatt!!.close()
         }
-        broadcastUpdate(ACTION_GATT_DISCONNECTED, msg)
+        broadcastUpdate(Actions.GATT_DISCONNECTED, msg)
     }
 
-    fun writeData(cmdByteArray: ByteArray) {
+    private fun writeData(cmdByteArray: ByteArray) {
         val cmdCharacteristic = BluetoothUtils.findCommandCharacteristic(bleGatt!!)
         // disconnect if the characteristic is not found
         if (cmdCharacteristic == null) {
+            myRepository.cmdByteArray = null
             disconnectGattServer("Unable to find cmd characteristic")
             return
         }
@@ -206,9 +275,10 @@ class BleGattService : Service() {
         if (!success) {
             Log.e(TAG, "Failed to write command")
         }
+        myRepository.cmdByteArray = null
+
     }
-    fun startRead(){
-        isRead = true
+    private fun startNotification(){
         // find command characteristics from the GATT server
         val respCharacteristic = bleGatt?.let { BluetoothUtils.findResponseCharacteristic(it) }
         // disconnect if the characteristic is not found
@@ -224,6 +294,16 @@ class BleGattService : Service() {
         )
         descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
         bleGatt?.writeDescriptor(descriptor)
+    }
+    private fun stopNotification(){
+        // find command characteristics from the GATT server
+        val respCharacteristic = bleGatt?.let { BluetoothUtils.findResponseCharacteristic(it) }
+        // disconnect if the characteristic is not found
+        if (respCharacteristic == null) {
+            disconnectGattServer("Unable to find characteristic")
+            return
+        }
+        bleGatt?.setCharacteristicNotification(respCharacteristic, false)
     }
 
 }

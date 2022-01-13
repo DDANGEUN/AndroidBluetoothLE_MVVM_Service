@@ -5,7 +5,11 @@
 
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <application
         android:name="com.lilly.ble.MyApplication"
         android:icon="@mipmap/ic_launcher"
@@ -14,7 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:allowBackup="true">
-        <activity android:name="com.lilly.ble.ui.main.MainActivity">
+        <activity android:name="com.lilly.ble.ui.main.MainActivity"
+            android:launchMode="singleTop"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
